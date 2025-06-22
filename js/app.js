@@ -42,6 +42,7 @@ export function logout() {
   window.location.href = "index.html";
 }
 
+
 // Function to fetch user data using GraphQL query
 export async function fetchUserData() {
   const authToken = localStorage.getItem("authToken");
@@ -69,19 +70,19 @@ export async function fetchUserData() {
                   members {
                     user {
                       login
-                    }
-                  }
-                  object {
-                    name
-                  }
-                  auditors(where:{grade: {_is_null: false}}) {
+                      }
+                      }
+                      object {
+                        name
+                        }
+                        auditors(where:{grade: {_is_null: false}}) {
                     auditor {
                       login
                     }
                     grade
                   }
                 }
-              }
+                }
             }
             audits: transaction(
               order_by: {createdAt: asc}
@@ -91,32 +92,36 @@ export async function fetchUserData() {
               amount
               path
               createdAt
-            }
-            xp: transaction(
-              order_by: {createdAt: asc}
-              where: {type: {_eq: "xp"}, userId: {_eq: 6868}}
-            ) {
-              amount
-              path
-              createdAt
-              objectId
-            }
+              }
+              xp: transaction(
+                where: {
+          userId: { _eq: 6868 },
+          type: { _eq: "xp" },
+          eventId: { _eq: 75 }
+          },
+          order_by: { createdAt: asc }
+          ) {
+        amount
+        createdAt
+        path
+        eventId
+        }
             skills: transaction(
               order_by: {type: asc, createdAt: desc,amount:desc}
               distinct_on: [type]
               where: {userId: {_eq: 6868}, _and: {type: {_like: "skill_%"}}}
-            ) {
-              type
-              amount
-            }
-            xpTotal: transaction_aggregate(where: {type: {_eq: "xp"}, userId: {_eq: 6868}}) {
-              aggregate {
-                sum {
-                  amount
+              ) {
+                type
+                amount
                 }
-              }
-            }
-          }`
+                xpTotal: transaction_aggregate(where: {type: {_eq: "xp"}, userId: {_eq: 6868}}) {
+                  aggregate {
+                    sum {
+                  amount
+                  }
+                  }
+                  }
+                  }`
     }),
   });
 
@@ -126,7 +131,68 @@ export async function fetchUserData() {
   }
 
   const result = (await response.json()).data;
-  
+  const currentUserId = result.user[0].id;
+
+  async function getXp(currentUserId) {
+
+    const query = `
+      query xpProgression($userId: Int!, $rootEventId: Int!) {
+        transaction(
+          where: {
+            userId: { _eq: $userId },
+            type: { _eq: "xp" },
+            eventId: { _eq: $rootEventId }
+          },
+          order_by: { createdAt: asc }
+        ) {
+          amount
+          createdAt
+          path
+          eventId
+        }
+      }
+      `;
+
+    try {
+      const variables = { userId: parseInt(currentUserId), rootEventId: 75 };
+
+      const response = await fetch(graphqlEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ query, variables })
+      });
+
+      const result = await response.json();
+
+      if (result.errors) {
+        console.error('GraphQL Errors fetching XP progression:', result.errors);
+        return;
+      }
+
+      // Process data for graph (e.g., calculate cumulative XP)
+      const xpData = result.data.transaction;
+      let cumulativeXp = 0;
+      const processedXpData = xpData.map(entry => {
+        // console.log(entry)
+
+        cumulativeXp += entry.amount;
+        const date = new Date(entry.createdAt);
+
+        // return {
+        //   date: date,
+        //   xp: cumulativeXp,
+        //   path: entry.path
+        // };
+      });
+      return cumulativeXp;
+    } catch (error) {
+      console.error('Error fetching XP progression:', error);
+    }
+  }
+
   const user = {
     id: result.user[0].id,
     login: result.user[0].login,
@@ -136,8 +202,10 @@ export async function fetchUserData() {
     ratio: result.user[0].auditRatio,
     firstName: result.user[0].firstName,
     lastName: result.user[0].lastName,
-    xp: result.xpTotal.aggregate.sum.amount
+
+    xp: await getXp(currentUserId)
   }
+
 
   const groups = getGroups(result.user[0].groups);
   const interactions = countInteractions(groups, user);
@@ -266,7 +334,7 @@ function displayRadarData(interactions) {
 
   document.getElementById("radar").innerHTML = radarHTML;
 }
-  
+
 
 function formatByteSize(bytes) {
   const kilobyte = 1000;
