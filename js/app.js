@@ -1,4 +1,5 @@
 import { getGroups, countInteractions, getCountryCode, getXPS } from "./utils.js";
+ import { displayProfile } from "./profile.js";
 
 const graphqlEndpoint = "https://learn.zone01kisumu.ke/api/graphql-engine/v1/graphql";
 
@@ -27,7 +28,7 @@ export async function login(evt) {
     localStorage.setItem("authToken", data);
 
     // Redirect to the profile page after successful login
-    window.location.href = "profile.html";
+    return await displayProfile();
   } catch (error) {
     document.getElementById("error-message").innerText = error.message;
   }
@@ -46,12 +47,11 @@ export function logout() {
 // Function to fetch user data using GraphQL query
 export async function fetchUserData() {
   const authToken = localStorage.getItem("authToken");
-  // try {
   const response = await fetch(graphqlEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${authToken}`, // Ensure authToken is available from login
+      "Authorization": `Bearer ${authToken}`,
     },
     body: JSON.stringify({
       query: `{
