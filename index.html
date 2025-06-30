@@ -10,9 +10,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="module">
     import { fetchUserData } from "./js/app.js";
-    function checkAuth() {
+    import { displayProfile } from "./js/profile.js";
+    async function checkAuth() {
       const authToken = localStorage.getItem("authToken");
-      if (authToken) window.location.href = "profile.html";
+      if (authToken) await displayProfile();
     }
     checkAuth();
   </script>
