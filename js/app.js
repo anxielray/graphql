@@ -367,7 +367,7 @@ function displayRadarData(interactions) {
 
   const radarHTML = `
     <div class="radar-chart-wrapper">
-      <h2 class="radar-title">🔥 Top Interactions</h2>
+      <h2 class="radar-title">Top Interactions</h2>
       <radar-chart 
         scores="${scores.join(";")}" 
         labels="${labels.join(";")}" 
@@ -402,7 +402,7 @@ function displayUserData(user) {
   const countryCode = getCountryCode(user.nationality);
   document.getElementById(
     "welcome"
-  ).innerText += ` ${user.firstName} ${user.lastName}`;
+  ).innerText += ` ${user.firstName}`;
   document.getElementById("email").innerText = `📧 ${user.email}`;
   document.getElementById("login").innerText = `👤 ${user.login}`;
   document.getElementById("campus").innerText = `${user.campus}`;

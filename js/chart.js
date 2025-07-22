@@ -49,13 +49,16 @@ class PieChart extends HTMLElement {
     this.data = this.getAttribute('data').split(';').map(v => parseFloat(v))
     const labels = this.getAttribute('labels')?.split(';') ?? []
 
-    const svg = strToDom(`<svg viewBox="-1 -1 2 2">
-          <g mask="url(#graphMask)"></g>
-          <mask id="graphMask">
-              <rect fill="white" x="-1" y="-1" width="2" height="2"/>
-              <circle r="${donut}" fill="black"/>
-          </mask>
-      </svg>`)
+    const newRadius = donut * 0.8;
+
+    const svg = strToDom(`<svg viewBox="-1 -1 2 2" style="width: 150px; height: 150px;">
+  <g mask="url(#graphMask)"></g>
+  <mask id="graphMask">
+      <rect fill="white" x="-1" y="-1" width="2" height="2"/>
+      <circle r="${newRadius}" fill="black"/>
+  </mask>
+</svg>`)
+
 
     const pathGroup = svg.querySelector('g')
     const maskGroup = svg.querySelector('mask')
@@ -211,7 +214,7 @@ class BarChart extends HTMLElement {
 
     this.rects = this.data.map((height, index) => {
       const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      const rectWidth = 100 / (this.data.length * 1.3); // add spacing
+      const rectWidth = 100 / (this.data.length * 1.3);
       const gap = rectWidth * 0.3;
 
       rect.setAttribute('x', (index * (rectWidth + gap)) + '%');
@@ -417,7 +420,7 @@ class RadarChart extends HTMLElement {
       text.setAttribute('x', x);
       text.setAttribute('y', y);
       text.setAttribute('font-size', '8');
-      text.setAttribute('fill', 'black');
+      text.setAttribute('fill', '#228B22');
       text.textContent = labels[i];
       this.svg.appendChild(text);
     }
