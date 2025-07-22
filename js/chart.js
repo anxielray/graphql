@@ -419,8 +419,9 @@ class RadarChart extends HTMLElement {
 
       text.setAttribute('x', x);
       text.setAttribute('y', y);
-      text.setAttribute('font-size', '8');
-      text.setAttribute('fill', '#228B22');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('font-weight', '9');
+      text.setAttribute('fill', '#2c97dfff');
       text.textContent = labels[i];
       this.svg.appendChild(text);
     }
